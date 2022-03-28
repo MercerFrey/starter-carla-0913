@@ -2,9 +2,11 @@ import argparse
 import pygame
 
 from .hud import InfoBar
-from .hero import Hero
+#from .hero import Hero
 from .world import World
 from .input_control import InputControl
+from .hero_with_controller import Hero
+from .other_with_controller import Other
 
 from .color import *
 
@@ -36,13 +38,14 @@ def game_loop(args):
         input_control = InputControl()
         world = World(args)
         hero = Hero()
-
+        other = Other()
         # For each module, assign other modules that are going to be used inside that module
         hud.start(world)
         input_control.start(hud, world)
         world.start(input_control)
 
         hero.start(world)
+        other.start(world)
 
         # Game loop
         clock = pygame.time.Clock()
@@ -52,6 +55,7 @@ def game_loop(args):
             # Tick all modules
             world.tick(clock)
             hero.tick(clock)
+            other.tick(clock)
             hud.tick(clock)
             input_control.tick(clock)
 
@@ -69,6 +73,8 @@ def game_loop(args):
     finally:
         if hero is not None:
             hero.destroy()
+        if other is not None:
+            other.destroy()
 
 
 def main():
