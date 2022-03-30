@@ -1,5 +1,6 @@
 import argparse
 import pygame
+import carla
 
 from .hud import InfoBar
 #from .hero import Hero
@@ -37,16 +38,51 @@ def game_loop(args):
         hud = InfoBar(args.width, args.height)
         input_control = InputControl()
         world = World(args)
-        hero = Hero()
-        other = Other()
+        
+
+        hero_waypoints = [
+            carla.Location(x=-30.6, y=28, z=0.6),
+            carla.Location(x=120.6, y=28, z=0.6),
+        ]
+        
+        other1_waypoints = [
+            carla.Location(x=-30, y=28, z=0.6),
+            carla.Location(x=120, y=28, z=0.6),
+        ]
+        other2_waypoints = [
+            carla.Location(x=-30, y=28, z=0.6),
+            carla.Location(x=30, y=28, z=0.6),
+            carla.Location(x=35, y=24, z=0.6),
+            carla.Location(x=120, y=24, z=0.6),
+        ]
+
+
+        hero = Hero(location = carla.Location(x=-114.6, y=28, z=0.6),
+                    rotation = carla.Rotation(yaw=0.0),
+                    waypoints = hero_waypoints,
+                    target_speed = 12  
+                    )
+        other1 = Other(location = carla.Location(x=-50.6, y=28, z=0.6),
+                        rotation = carla.Rotation(yaw=0.0),
+                        waypoints = other1_waypoints,
+                        target_speed = 7)
+        other2 = Other(location = carla.Location(x=-108.6, y=28, z=0.6),
+                        rotation = carla.Rotation(yaw=0.0),
+                        waypoints = other2_waypoints,
+                        target_speed = 12)
+
+
+
+
         # For each module, assign other modules that are going to be used inside that module
         hud.start(world)
         input_control.start(hud, world)
         world.start(input_control)
 
         hero.start(world)
-        other.start(world)
-
+        other1.start(world)
+        other2.start(world)
+        
         # Game loop
         clock = pygame.time.Clock()
         while True:
@@ -55,7 +91,8 @@ def game_loop(args):
             # Tick all modules
             world.tick(clock)
             hero.tick(clock)
-            other.tick(clock)
+            other1.tick(clock)
+            other2.tick(clock)
             hud.tick(clock)
             input_control.tick(clock)
 
@@ -73,8 +110,10 @@ def game_loop(args):
     finally:
         if hero is not None:
             hero.destroy()
-        if other is not None:
-            other.destroy()
+        if other1 is not None:
+            other1.destroy()
+        if other2 is not None:
+            other2.destroy()    
 
 
 def main():

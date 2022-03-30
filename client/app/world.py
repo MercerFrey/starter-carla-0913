@@ -791,13 +791,13 @@ class World(object):
             self.hero_actor = random.choice(hero_vehicles)
             self.hero_transform = self.hero_actor.get_transform()
 
-    def spawn_hero(self, blueprint_filter="vehicle.*", spawn_point=None):
+    def spawn_hero(self, blueprint_filter="vehicle.*", spawn_point=None, role_name="hero"):
         """Spawns the hero actor when the script runs"""
         # Get a random blueprint.
         blueprint = random.choice(
             self.world.get_blueprint_library().filter(blueprint_filter)
         )
-        blueprint.set_attribute("role_name", "hero")
+        blueprint.set_attribute("role_name", role_name)
         if blueprint.has_attribute("color"):
             color = random.choice(blueprint.get_attribute("color").recommended_values)
             blueprint.set_attribute("color", color)
@@ -812,9 +812,10 @@ class World(object):
                 random.choice(spawn_points) if spawn_points else carla.Transform()
             )
             actor = self.world.try_spawn_actor(blueprint, spawn_point)
-
-        self.hero_actor = actor
-        self.hero_transform = self.hero_actor.get_transform()
+        
+        if role_name == "hero":
+            self.hero_actor = actor
+            self.hero_transform = self.hero_actor.get_transform()
 
         return actor
 
