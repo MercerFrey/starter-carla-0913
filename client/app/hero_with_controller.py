@@ -1,3 +1,4 @@
+from turtle import distance
 import carla
 
 from .controller import PurePursuitController
@@ -30,7 +31,8 @@ class Hero(object):
         # self.actor.set_autopilot(True, world.args.tm_port)
 
     def tick(self, clock):
-
+        
+        self.distance_between_others()
         throttle, steer = self.controller.get_control(
             self.actor,
             self.waypoints,
@@ -47,3 +49,11 @@ class Hero(object):
         """Destroy the hero actor when class instance is destroyed"""
         if self.actor is not None:
             self.actor.destroy()
+
+    def distance_between_others(self):
+        vehicles = self.world.get_vehicles()
+        others = [actor for actor in vehicles if self.actor.id != actor.id]
+
+        # for other in others:
+        #     distance = self.actor.get_location().distance(other.get_location())
+        #     print(other.id, distance)

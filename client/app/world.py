@@ -783,7 +783,8 @@ class World(object):
 
     def get_vehicles(self):
         return [actor for actor in self.world.get_actors() if "vehicle" in actor.type_id]
-        
+    def get_actor(self, actor_id):
+        return self.world.get_actor(actor_id)
 
     def select_hero_actor(self):
         """Selects only one hero actor if there are more than one. If there are not any, it will spawn one."""
