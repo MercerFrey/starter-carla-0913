@@ -802,6 +802,10 @@ class World(object):
             color = random.choice(blueprint.get_attribute("color").recommended_values)
             blueprint.set_attribute("color", color)
 
+        spawn_points = self.world.get_map().get_spawn_points()
+        with open("spawn_points.txt", 'w') as f:
+            for transform in spawn_points:
+                f.write("{}: {}\n".format(transform.location, transform.rotation))
         # Spawn the player.
         actor = None
         if not spawn_point is None:

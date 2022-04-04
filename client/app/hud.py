@@ -146,6 +146,7 @@ class InfoBar(object):
                 "Ego Vehicle:   %14s"
                 % get_actor_display_name(self.world.hero_actor, truncate=14),
                 "Ego Speed:           %3d km/h" % hero_speed_text,
+                "Ego Location: %s" % self.world.hero_actor.get_location(),
                 # 'Hero Affected by:',
                 # '  Traffic Light: %12s' % affected_traffic_light_text,
                 # '  Speed Limit:       %3d km/h' % affected_speed_limit_text

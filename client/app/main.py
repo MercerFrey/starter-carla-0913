@@ -1,6 +1,7 @@
 import argparse
 import pygame
 import carla
+import json
 
 from .hud import InfoBar
 #from .hero import Hero
@@ -38,51 +39,15 @@ def game_loop(args):
         hud = InfoBar(args.width, args.height)
         input_control = InputControl()
         world = World(args)
-        
 
-        hero_waypoints = [
-            carla.Location(x=-30.6, y=28, z=0.6),
-            carla.Location(x=120.6, y=28, z=0.6),
-        ]
-        
-        other1_waypoints = [
-            carla.Location(x=-30, y=28, z=0.6),
-            carla.Location(x=120, y=28, z=0.6),
-        ]
-        other2_waypoints = [
-            carla.Location(x=-30, y=28, z=0.6),
-            carla.Location(x=30, y=28, z=0.6),
-            carla.Location(x=35, y=24, z=0.6),
-            carla.Location(x=120, y=24, z=0.6),
-        ]
-
-
-        hero = Hero(location = carla.Location(x=-114.6, y=28, z=0.6),
-                    rotation = carla.Rotation(yaw=0.0),
-                    waypoints = hero_waypoints,
-                    target_speed = 12  
-                    )
-        other1 = Other(location = carla.Location(x=-50.6, y=28, z=0.6),
-                        rotation = carla.Rotation(yaw=0.0),
-                        waypoints = other1_waypoints,
-                        target_speed = 7)
-        other2 = Other(location = carla.Location(x=-108.6, y=28, z=0.6),
-                        rotation = carla.Rotation(yaw=0.0),
-                        waypoints = other2_waypoints,
-                        target_speed = 12)
-
-
-
-
+        actors = scenario_reader(args.scenario)
         # For each module, assign other modules that are going to be used inside that module
         hud.start(world)
         input_control.start(hud, world)
         world.start(input_control)
 
-        hero.start(world)
-        other1.start(world)
-        other2.start(world)
-        
+        [actor.start(world) for actor in actors]
+
         # Game loop
         clock = pygame.time.Clock()
         while True:
@@ -90,9 +55,8 @@ def game_loop(args):
 
             # Tick all modules
             world.tick(clock)
-            hero.tick(clock)
-            other1.tick(clock)
-            other2.tick(clock)
+            [actor.tick(clock) for actor in actors]
+        
             hud.tick(clock)
             input_control.tick(clock)
 
@@ -108,13 +72,40 @@ def game_loop(args):
         print("\nCancelled by user. Bye!")
 
     finally:
-        if hero is not None:
-            hero.destroy()
-        if other1 is not None:
-            other1.destroy()
-        if other2 is not None:
-            other2.destroy()    
+        [actor.destroy() for actor in actors if actor is not None]
 
+
+
+def scenario_reader(scenario_file):
+    with open(scenario_file, 'r') as f:
+        scenario = json.load(f)
+    actors = []
+    for actor_name, attributes in scenario.items():
+        actor_spawn_point_location = carla.Location(**attributes["spawn_point"]["location"])
+        actor_spawn_point_rotation = carla.Rotation(**attributes["spawn_point"]["rotation"])
+        
+        actor_way_points = [carla.Location(**point) for point in attributes["way_points"]]
+        actor_target_speed = attributes["target_speed"]
+
+        
+        actor = None
+        if actor_name == "hero":
+            actor = Hero(
+                location = actor_spawn_point_location,
+                rotation = actor_spawn_point_rotation,
+                waypoints = actor_way_points,
+                target_speed = actor_target_speed
+            )
+        else:
+            actor = Other(
+                location = actor_spawn_point_location,
+                rotation = actor_spawn_point_rotation,
+                waypoints = actor_way_points,
+                target_speed = actor_target_speed
+            )
+        actors.append(actor)
+
+    return actors
 
 def main():
     """Parses the arguments received from commandline and runs the game loop"""
@@ -162,11 +153,19 @@ def main():
         default="vehicle.audi.*",
         help='actor filter (default: "vehicle.audi.*")',
     )
+    argparser.add_argument(
+        "--scenario",
+        metavar="scenario_1.json",
+        default="scenario_1.json",
+        help='scenario file',
+    )
+
 
     # Parse arguments
     args = argparser.parse_args()
     args.description = "BounCMPE CarlaSim 2D Visualizer"
     args.width, args.height = [int(x) for x in args.res.split("x")]
+
 
     # Run game loop
     game_loop(args)
